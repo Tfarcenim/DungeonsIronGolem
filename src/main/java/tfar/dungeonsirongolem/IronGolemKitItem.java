@@ -4,8 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -78,6 +82,8 @@ public class IronGolemKitItem extends Item {
                 level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
                 itemstack.getOrCreateTag().putUUID(GOLEM_ID,spawn.getUUID());
                 DungeonsIronGolem.ironGolemSavedData.addGolem(spawn.getUUID());
+                ((ServerPlayer)pContext.getPlayer()).connection.send(new ClientboundEntityEventPacket(spawn, (byte) 60));
+                spawn.level().playSound(null,spawn.blockPosition(), SoundEvents.IRON_GOLEM_REPAIR, SoundSource.NEUTRAL,1,1);
             }
             return InteractionResult.CONSUME;
         }

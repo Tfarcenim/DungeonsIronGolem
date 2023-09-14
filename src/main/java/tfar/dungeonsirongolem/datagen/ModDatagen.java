@@ -11,6 +11,8 @@ public class ModDatagen {
         DataGenerator dataGenerator = e.getGenerator();
         PackOutput packOutput = dataGenerator.getPackOutput();
         ExistingFileHelper existingFileHelper = e.getExistingFileHelper();
-        dataGenerator.addProvider(e.includeClient(),new ModModelProvider(packOutput,existingFileHelper));
+        boolean client = e.includeClient();
+        dataGenerator.addProvider(client,new ModModelProvider(packOutput,existingFileHelper));
+        dataGenerator.addProvider(client,new ModLangProvider(packOutput));
     }
 }
