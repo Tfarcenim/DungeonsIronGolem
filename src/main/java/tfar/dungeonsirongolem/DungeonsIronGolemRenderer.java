@@ -6,5 +6,6 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class DungeonsIronGolemRenderer extends GeoEntityRenderer<DungeonsIronGolemEntity> {
     public DungeonsIronGolemRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DungeonsIronGolemModel("iron_golem"));
+        shadowRadius = 1;
     }
 }
