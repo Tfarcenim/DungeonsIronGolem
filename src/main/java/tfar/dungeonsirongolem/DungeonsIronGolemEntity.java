@@ -5,14 +5,14 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
+import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.constant.DefaultAnimations;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class DungeonsIronGolemEntity extends Mob implements GeoAnimatable {
+public class DungeonsIronGolemEntity extends Mob implements GeoEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected DungeonsIronGolemEntity(EntityType<? extends Mob> pEntityType, Level pLevel) {
@@ -27,7 +27,7 @@ public class DungeonsIronGolemEntity extends Mob implements GeoAnimatable {
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(
                 // Add our flying animation controller
-                new AnimationController<>(this, 10, (state) -> state.setAndContinue(state.getLimbSwingAmount() >
+                new AnimationController<>(this, 40, (state) -> state.setAndContinue(state.getLimbSwingAmount() >
                         .1 ? DefaultAnimations.WALK : DefaultAnimations.IDLE)
                 // Add our generic living animation controller
         )//,                DefaultAnimations.genericLivingController(this)
@@ -37,10 +37,5 @@ public class DungeonsIronGolemEntity extends Mob implements GeoAnimatable {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    @Override
-    public double getTick(Object o) {
-        return 0;
     }
 }
