@@ -1,5 +1,6 @@
 package tfar.dungeonsirongolem;
 
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
@@ -47,6 +48,10 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
       //  this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Mob.class, 5, false, false, (p_28879_) -> {
       //      return p_28879_ instanceof Enemy && !(p_28879_ instanceof Creeper);
       //  }));
+
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+
+
         this.targetSelector.addGoal(4, new ResetUniversalAngerTargetGoal<>(this, false));
     }
 
@@ -94,5 +99,14 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     @Override
     public void startPersistentAngerTimer() {
 
+    }
+
+    @Override
+    public void die(DamageSource pDamageSource) {
+        super.die(pDamageSource);
+        if (!level().isClientSide) {
+            DungeonsIronGolem.ironGolemSavedData.removeGolem(uuid);
+            IronGolemKitItem.addDeathCooldown(uuid);
+        }
     }
 }

@@ -2,7 +2,7 @@
   "required": true,
   "package": "tfar.dungeonsirongolem.mixin",
   "compatibilityLevel": "JAVA_16",
-  "refmap": "examplemod.refmap.json",
+  "refmap": "dungeonsirongolem.refmap.json",
   "mixins": [
   ],
   "client":[
