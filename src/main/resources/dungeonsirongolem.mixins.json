@@ -4,8 +4,9 @@
   "compatibilityLevel": "JAVA_16",
   "refmap": "dungeonsirongolem.refmap.json",
   "mixins": [
+    "ExampleMixin"
   ],
-  "client":[
+  "client": [
   ],
   "injectors": {
     "defaultRequire": 1
