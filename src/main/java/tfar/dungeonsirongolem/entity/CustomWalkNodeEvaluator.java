@@ -1,9 +1,10 @@
-package tfar.dungeonsirongolem;
+package tfar.dungeonsirongolem.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 public class CustomWalkNodeEvaluator extends WalkNodeEvaluator {
 

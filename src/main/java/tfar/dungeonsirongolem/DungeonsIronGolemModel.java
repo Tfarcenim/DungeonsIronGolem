@@ -3,6 +3,7 @@ package tfar.dungeonsirongolem;
 
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 public class DungeonsIronGolemModel extends GeoModel<DungeonsIronGolemEntity> {
     private final String prefix;

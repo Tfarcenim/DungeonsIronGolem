@@ -1,14 +1,16 @@
-package tfar.dungeonsirongolem;
+package tfar.dungeonsirongolem.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.NeutralMob;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
@@ -34,21 +36,30 @@ import software.bernie.geckolib.constant.DefaultAnimations;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import tfar.dungeonsirongolem.DungeonsIronGolem;
+import tfar.dungeonsirongolem.IronGolemKitItem;
 
 import java.util.UUID;
 
 public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity, NeutralMob {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    protected DungeonsIronGolemEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
+
+    private static final EntityDataAccessor<Integer> ANIMATION = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ANIMATION_TIME = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> ATTACKING = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.BOOLEAN);
+
+    public DungeonsIronGolemEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         moveControl = new GolemMoveControl(this);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0D, true));
+        this.goalSelector.addGoal(1, new SwipeGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9D, 32.0F));
       //  this.goalSelector.addGoal(2, new MoveBackToVillageGoal(this, 0.6D, false));
    //     this.goalSelector.addGoal(4, new GolemRandomStrollInVillageGoal(this, 0.6D));
@@ -68,19 +79,87 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
         this.targetSelector.addGoal(4, new ResetUniversalAngerTargetGoal<>(this, false));
     }
 
+    protected SoundEvent getHurtSound(DamageSource pDamageSource) {
+        return SoundEvents.IRON_GOLEM_HURT;
+    }
+
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.IRON_GOLEM_DEATH;
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.25D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D).add(Attributes.ATTACK_DAMAGE, 15.0D);
     }
 
     @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(ANIMATION,0);
+        entityData.define(ANIMATION_TIME,0);
+        entityData.define(ATTACKING,false);
+    }
+
+    enum GolemAnimation {
+        NOTHING(100000),SWIPE(25),SLAM(25);
+
+        private final int duration;
+
+        GolemAnimation(int duration) {
+
+            this.duration = duration;
+        }
+    }
+
+    public GolemAnimation getAnimation() {
+        return GolemAnimation.values()[entityData.get(ANIMATION)];
+    }
+
+     public void setAnimation(GolemAnimation animation) {
+        entityData.set(ANIMATION,animation.ordinal());
+    }
+
+    public int getAnimationTime() {
+        return entityData.get(ANIMATION_TIME);
+    }
+
+    public void setAnimationTime(int time) {
+        entityData.set(ANIMATION_TIME,time);
+    }
+
+    public boolean isAttacking() {
+        return entityData.get(ATTACKING);
+    }
+
+    public void setAttacking(boolean attacking) {
+        entityData.set(ATTACKING,attacking);
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(
-                // Add our flying animation controller
-                new AnimationController<>(this, 10, (state) -> state.setAndContinue(state.getLimbSwingAmount() >
-                        .1 ? DefaultAnimations.WALK : DefaultAnimations.IDLE)
-                // Add our generic living animation controller
-        )//,                DefaultAnimations.genericLivingController(this)
-        );
+        controllers.add(DefaultAnimations.genericWalkIdleController(this));
+        controllers.add(swipeAnimation(DefaultAnimations.ATTACK_STRIKE));
+    }
+
+    public AnimationController<DungeonsIronGolemEntity> swipeAnimation(RawAnimation attackAnimation) {
+        return new AnimationController<>(this, "Attack", 2, state -> {
+            if (getAnimation() == GolemAnimation.SWIPE && isAttacking()) {
+                return state.setAndContinue(attackAnimation);
+            }
+            state.getController().forceAnimationReset();
+            return PlayState.STOP;
+        });
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (getAnimation() != GolemAnimation.NOTHING) {
+            setAnimationTime(getAnimationTime() +1);
+            if (getAnimationTime() >= getAnimation().duration) {
+                setAttacking(false);
+                setAnimation(GolemAnimation.NOTHING);
+            }
+        }
     }
 
     @Override
@@ -212,12 +291,17 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
                     return false;
                 }
             }
-
             return true;
         }
     }
 
     public static boolean shouldNoClip(BlockState state) {
         return state.is(BlockTags.LEAVES);
+    }
+
+    public void startAnimation(GolemAnimation animation) {
+        setAnimationTime(0);
+        setAnimation(animation);
+        setAttacking(true);
     }
 }

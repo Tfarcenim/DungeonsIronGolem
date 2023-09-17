@@ -19,6 +19,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 import tfar.dungeonsirongolem.datagen.ModDatagen;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 import tfar.dungeonsirongolem.world.IronGolemSavedData;
 
 // The value here should match an entry in the META-INF/mods.toml file
