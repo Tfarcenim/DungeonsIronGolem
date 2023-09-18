@@ -350,7 +350,7 @@
 				}
 			}
 		},
-		"attack_slam": {
+		"attack.slam": {
 			"animation_length": 1.5,
 			"bones": {
 				"head": {

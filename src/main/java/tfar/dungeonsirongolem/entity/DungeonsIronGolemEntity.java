@@ -59,7 +59,8 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new SwipeGoal(this, 1.0D, true));
+        //this.goalSelector.addGoal(1, new SwipeGoal(this, 1.0D, true));
+        this.goalSelector.addGoal(1, new SlamGoal(this, 1.0D, true));
         this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9D, 32.0F));
       //  this.goalSelector.addGoal(2, new MoveBackToVillageGoal(this, 0.6D, false));
    //     this.goalSelector.addGoal(4, new GolemRandomStrollInVillageGoal(this, 0.6D));
@@ -138,11 +139,23 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(DefaultAnimations.genericWalkIdleController(this));
         controllers.add(swipeAnimation(DefaultAnimations.ATTACK_STRIKE));
+        controllers.add(slamAnimation(DefaultAnimations.ATTACK_SLAM));
+
     }
 
     public AnimationController<DungeonsIronGolemEntity> swipeAnimation(RawAnimation attackAnimation) {
         return new AnimationController<>(this, "Attack", 2, state -> {
             if (getAnimation() == GolemAnimation.SWIPE && isAttacking()) {
+                return state.setAndContinue(attackAnimation);
+            }
+            state.getController().forceAnimationReset();
+            return PlayState.STOP;
+        });
+    }
+
+    public AnimationController<DungeonsIronGolemEntity> slamAnimation(RawAnimation attackAnimation) {
+        return new AnimationController<>(this, "Attack", 2, state -> {
+            if (getAnimation() == GolemAnimation.SLAM && isAttacking()) {
                 return state.setAndContinue(attackAnimation);
             }
             state.getController().forceAnimationReset();
