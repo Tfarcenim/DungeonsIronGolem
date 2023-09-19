@@ -2,9 +2,11 @@ package tfar.dungeonsirongolem.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
@@ -43,15 +45,18 @@ import tfar.dungeonsirongolem.IronGolemKitItem;
 import tfar.dungeonsirongolem.entity.goal.AttackSlamGoal;
 import tfar.dungeonsirongolem.entity.goal.AttackStrikeGoal;
 import tfar.dungeonsirongolem.entity.goal.FollowAggresivelyGoal;
+import tfar.dungeonsirongolem.entity.goal.FollowSummonerGoal;
 
+import java.util.Optional;
 import java.util.UUID;
 
-public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity, NeutralMob {
+public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity, NeutralMob,OwnableEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private static final EntityDataAccessor<Integer> ANIMATION = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_ANIMATION_CONTINUE = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
     private int timer = 0;//server
     private boolean reset;//client
@@ -71,6 +76,9 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
       //  this.goalSelector.addGoal(2, new MoveBackToVillageGoal(this, 0.6D, false));
    //     this.goalSelector.addGoal(4, new GolemRandomStrollInVillageGoal(this, 0.6D));
       //  this.goalSelector.addGoal(5, new OfferFlowerGoal(this));
+
+        this.goalSelector.addGoal(6, new FollowSummonerGoal(this, 1.0D, 11.0F, 3.0F, false));
+
         this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 6.0F));
         this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
        // this.targetSelector.addGoal(1, new DefendVillageTargetGoal(this));
@@ -103,6 +111,45 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
         super.defineSynchedData();
         entityData.define(ANIMATION,0);
         entityData.define(SHOULD_ANIMATION_CONTINUE,false);
+        entityData.define(DATA_OWNERUUID_ID, Optional.empty());
+    }
+
+    @Nullable
+    @Override
+    public UUID getOwnerUUID() {
+        return this.entityData.get(DATA_OWNERUUID_ID).orElse(null);
+    }
+
+    public void setOwnerUUID(@javax.annotation.Nullable UUID pUuid) {
+        this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(pUuid));
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        if (this.getOwnerUUID() != null) {
+            pCompound.putUUID("Owner", this.getOwnerUUID());
+        }
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+
+        UUID uuid;
+        if (pCompound.hasUUID("Owner")) {
+            uuid = pCompound.getUUID("Owner");
+        } else {
+            String s = pCompound.getString("Owner");
+            uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
+        }
+
+        if (uuid != null) {
+            try {
+                this.setOwnerUUID(uuid);
+            } catch (Throwable throwable) {
+            }
+        }
     }
 
     public enum GolemAnimation {
@@ -325,9 +372,7 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
             PathNavigation pathnavigation = this.mob.getNavigation();
             if (pathnavigation != null) {
                 NodeEvaluator nodeevaluator = pathnavigation.getNodeEvaluator();
-                if (nodeevaluator != null && nodeevaluator.getBlockPathType(this.mob.level(), Mth.floor(this.mob.getX() + (double)pRelativeX), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + (double)pRelativeZ)) != BlockPathTypes.WALKABLE) {
-                    return false;
-                }
+                return nodeevaluator == null || nodeevaluator.getBlockPathType(this.mob.level(), Mth.floor(this.mob.getX() + (double) pRelativeX), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + (double) pRelativeZ)) == BlockPathTypes.WALKABLE;
             }
             return true;
         }

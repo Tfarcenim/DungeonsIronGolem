@@ -51,7 +51,7 @@ public class FollowSummonerGoal extends Goal {
     * method as well.
     */
    public boolean canUse() {
-      LivingEntity livingentity = null;//this.tamable.getOwner();
+      LivingEntity livingentity = this.tamable.getOwner();
       if (livingentity == null) {
          return false;
       } else if (livingentity.isSpectator()) {

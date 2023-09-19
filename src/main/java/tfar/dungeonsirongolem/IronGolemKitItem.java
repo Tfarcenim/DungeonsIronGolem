@@ -97,11 +97,11 @@ public class IronGolemKitItem extends Item {
                 blockpos1 = blockpos.relative(direction);
             }
 
-            EntityType<?> entitytype = DungeonsIronGolem.Entities.DUNGEONS_IRON_GOLEM_ENTITY;
-            Entity spawn = entitytype.spawn((ServerLevel)level, itemstack, pContext.getPlayer(), blockpos1, MobSpawnType.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP);
+            DungeonsIronGolemEntity spawn = DungeonsIronGolem.Entities.DUNGEONS_IRON_GOLEM_ENTITY.spawn((ServerLevel)level, itemstack, pContext.getPlayer(), blockpos1, MobSpawnType.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP);
             if (spawn != null) {
                 level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
                 itemstack.getOrCreateTag().putUUID(GOLEM_ID,spawn.getUUID());
+                spawn.setOwnerUUID(pContext.getPlayer().getUUID());
                 DungeonsIronGolem.ironGolemSavedData.addGolem(spawn.getUUID());
                 ((ServerPlayer)pContext.getPlayer()).connection.send(new ClientboundEntityEventPacket(spawn, (byte) 60));
                 spawn.level().playSound(null,spawn.blockPosition(), SoundEvents.IRON_GOLEM_REPAIR, SoundSource.NEUTRAL,1,1);
