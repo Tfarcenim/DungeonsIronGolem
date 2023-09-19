@@ -40,6 +40,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import tfar.dungeonsirongolem.DungeonsIronGolem;
 import tfar.dungeonsirongolem.IronGolemKitItem;
+import tfar.dungeonsirongolem.entity.goal.AttackSlamGoal;
+import tfar.dungeonsirongolem.entity.goal.AttackStrikeGoal;
+import tfar.dungeonsirongolem.entity.goal.FollowAggresivelyGoal;
 
 import java.util.UUID;
 
@@ -92,7 +95,7 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.25D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D).add(Attributes.ATTACK_DAMAGE, 15.0D);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 120.0D).add(Attributes.MOVEMENT_SPEED, 0.30D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D).add(Attributes.ATTACK_DAMAGE, 18.0D);
     }
 
     @Override
@@ -102,7 +105,7 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
         entityData.define(SHOULD_ANIMATION_CONTINUE,false);
     }
 
-    enum GolemAnimation {
+    public enum GolemAnimation {
         NOTHING(Integer.MAX_VALUE), STRIKE(25),SLAM(30);
 
         private final int duration;
@@ -113,11 +116,11 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
         }
     }
 
-    GolemAnimation getAnimation() {
+    public GolemAnimation getAnimation() {
         return GolemAnimation.values()[entityData.get(ANIMATION)];
     }
 
-     void setAnimation(GolemAnimation animation) {
+     public void setAnimation(GolemAnimation animation) {
         entityData.set(ANIMATION,animation.ordinal());
     }
 

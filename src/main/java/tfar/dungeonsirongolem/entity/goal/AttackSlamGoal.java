@@ -1,9 +1,11 @@
-package tfar.dungeonsirongolem.entity;
+package tfar.dungeonsirongolem.entity.goal;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.AABB;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 import java.util.List;
 
@@ -56,6 +58,7 @@ public class AttackSlamGoal extends Goal {
                         golem.doHurtTarget(entity);
                     }
                 }
+                golem.playSound(SoundEvents.IRON_GOLEM_ATTACK, 1.0F, 1.0F);
             }
         }
     }

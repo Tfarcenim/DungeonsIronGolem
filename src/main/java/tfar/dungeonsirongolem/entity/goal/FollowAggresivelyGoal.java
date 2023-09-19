@@ -1,4 +1,4 @@
-package tfar.dungeonsirongolem.entity;
+package tfar.dungeonsirongolem.entity.goal;
 
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;

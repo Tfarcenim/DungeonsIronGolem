@@ -1,7 +1,9 @@
-package tfar.dungeonsirongolem.entity;
+package tfar.dungeonsirongolem.entity.goal;
 
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 public class AttackStrikeGoal extends Goal {
 
@@ -36,7 +38,11 @@ public class AttackStrikeGoal extends Goal {
         if (golem.getAnimation() == DungeonsIronGolemEntity.GolemAnimation.STRIKE) {
             //time damage with animation
             if (golem.getTimer() == 13) {
-                golem.doHurtTarget(golem.getTarget());
+                LivingEntity target = golem.getTarget();
+                if (target != null) {
+                    golem.doHurtTarget(target);
+                    golem.playSound(SoundEvents.IRON_GOLEM_ATTACK, 1.0F, 1.0F);
+                }
                 golem.useSlam = true;
             }
         }

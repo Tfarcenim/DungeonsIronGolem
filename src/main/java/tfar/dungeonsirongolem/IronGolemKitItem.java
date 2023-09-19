@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 import java.util.*;
 
@@ -56,7 +57,27 @@ public class IronGolemKitItem extends Item {
             UUID uuid = getUuid(itemstack);
 
             if (DungeonsIronGolem.ironGolemSavedData.inPlay(uuid)) {
-                pContext.getPlayer().sendSystemMessage(Component.translatable("This golem is already in use"));
+                ///pContext.getPlayer().sendSystemMessage(Component.translatable("This golem is already in use"));
+
+                Entity entity = ((ServerLevel) level).getEntity(uuid);
+
+                if (entity instanceof DungeonsIronGolemEntity) {
+
+                    BlockPos blockpos = pContext.getClickedPos();
+                    Direction direction = pContext.getClickedFace();
+                    BlockState blockstate = level.getBlockState(blockpos);
+
+                    BlockPos blockpos1;
+                    if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
+                        blockpos1 = blockpos;
+                    } else {
+                        blockpos1 = blockpos.relative(direction);
+                    }
+
+
+                    entity.setPos(blockpos1.getX(),blockpos1.getY()+1,blockpos1.getZ());
+                }
+
                 return InteractionResult.SUCCESS;
             }
 
