@@ -221,7 +221,6 @@
 		},
 		"attack.strike": {
 			"animation_length": 1.25,
-			"loop": true,
 			"bones": {
 				"head": {
 					"rotation": {

@@ -1,15 +1,18 @@
 package tfar.dungeonsirongolem.entity;
 
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.EnumSet;
 
-public class SlamGoal extends Goal {
-    protected final DungeonsIronGolemEntity mob;
+public class FollowAggresivelyGoal extends Goal {
+
+    protected final PathfinderMob mob;
     private final double speedModifier;
     private final boolean followingTargetEvenIfNotSeen;
     private Path path;
@@ -20,16 +23,15 @@ public class SlamGoal extends Goal {
     private int ticksUntilNextAttack;
     private final int attackInterval = 20;
     private long lastCanUseCheck;
+    private static final long COOLDOWN_BETWEEN_CAN_USE_CHECKS = 20L;
     private int failedPathFindingPenalty = 0;
-    private final boolean canPenalize = false;
+    private boolean canPenalize = false;
 
-    boolean inRange;
-
-    public SlamGoal(DungeonsIronGolemEntity pMob, double pSpeedModifier, boolean pFollowingTargetEvenIfNotSeen) {
+    public FollowAggresivelyGoal(PathfinderMob pMob, double pSpeedModifier, boolean pFollowingTargetEvenIfNotSeen) {
         this.mob = pMob;
         this.speedModifier = pSpeedModifier;
         this.followingTargetEvenIfNotSeen = pFollowingTargetEvenIfNotSeen;
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     /**
@@ -38,7 +40,7 @@ public class SlamGoal extends Goal {
      */
     public boolean canUse() {
         long i = this.mob.level().getGameTime();
-        if (i - this.lastCanUseCheck < DELAY) {
+        if (i - this.lastCanUseCheck < 20L) {
             return false;
         } else {
             this.lastCanUseCheck = i;
@@ -92,7 +94,7 @@ public class SlamGoal extends Goal {
         this.mob.getNavigation().moveTo(this.path, this.speedModifier);
         this.mob.setAggressive(true);
         this.ticksUntilNextPathRecalculation = 0;
-        this.ticksUntilNextAttack = 10;
+        this.ticksUntilNextAttack = 0;
     }
 
     /**
@@ -101,7 +103,7 @@ public class SlamGoal extends Goal {
     public void stop() {
         LivingEntity livingentity = this.mob.getTarget();
         if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingentity)) {
-            this.mob.setTarget(null);
+            this.mob.setTarget((LivingEntity)null);
         }
 
         this.mob.setAggressive(false);
@@ -119,7 +121,7 @@ public class SlamGoal extends Goal {
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null) {
             this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-            double distance = this.mob.getPerceivedTargetDistanceSquareForMeleeAttack(livingentity);
+            double d0 = this.mob.getPerceivedTargetDistanceSquareForMeleeAttack(livingentity);
             this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
             if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == 0.0D && this.pathedTargetY == 0.0D && this.pathedTargetZ == 0.0D || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= 1.0D || this.mob.getRandom().nextFloat() < 0.05F)) {
                 this.pathedTargetX = livingentity.getX();
@@ -138,9 +140,9 @@ public class SlamGoal extends Goal {
                         failedPathFindingPenalty += 10;
                     }
                 }
-                if (distance > 1024.0D) {
+                if (d0 > 1024.0D) {
                     this.ticksUntilNextPathRecalculation += 10;
-                } else if (distance > 256.0D) {
+                } else if (d0 > 256.0D) {
                     this.ticksUntilNextPathRecalculation += 5;
                 }
 
@@ -152,46 +154,10 @@ public class SlamGoal extends Goal {
             }
 
             this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-            this.checkAndPerformAttack(livingentity, distance);
         }
-    }
-
-    protected void checkAndPerformAttack(LivingEntity pEnemy, double pDistToEnemySqr) {
-        double d0 = this.getAttackReachSqr(pEnemy);
-
-        inRange = pDistToEnemySqr <= d0;
-        if (inRange) {
-            mob.startAnimation(DungeonsIronGolemEntity.GolemAnimation.SLAM);
-
-            if (this.ticksUntilNextAttack <= 0) {
-                this.resetAttackCooldown();
-                this.mob.doHurtTarget(pEnemy);
-            }
-        } else {
-            ticksUntilNextAttack = 12;
-        }
-    }
-
-    static final int DELAY = 25;
-
-    protected void resetAttackCooldown() {
-        this.ticksUntilNextAttack = this.adjustedTickDelay(DELAY);
-    }
-
-    protected boolean isTimeToAttack() {
-        return this.ticksUntilNextAttack <= 0;
-    }
-
-    protected int getTicksUntilNextAttack() {
-        return this.ticksUntilNextAttack;
-    }
-
-    protected int getAttackInterval() {
-        return this.adjustedTickDelay(DELAY);
     }
 
     protected double getAttackReachSqr(LivingEntity pAttackTarget) {
-        return this.mob.getBbWidth() * 2.0F * this.mob.getBbWidth() * 2.0F + pAttackTarget.getBbWidth();
+        return (double)(this.mob.getBbWidth() * 2.0F * this.mob.getBbWidth() * 2.0F + pAttackTarget.getBbWidth());
     }
-
 }
