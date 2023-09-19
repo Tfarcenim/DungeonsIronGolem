@@ -50,8 +50,9 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     private static final EntityDataAccessor<Integer> ANIMATION = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> SHOULD_ANIMATION_CONTINUE = SynchedEntityData.defineId(DungeonsIronGolemEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private int timer = 0;
-    private boolean reset;
+    private int timer = 0;//server
+    private boolean reset;//client
+    public boolean useSlam;//server
 
     public DungeonsIronGolemEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -61,7 +62,9 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new AttackStrikeGoal(this));
-        this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9D, 32.0F));
+        this.goalSelector.addGoal(1, new AttackSlamGoal(this));
+        this.goalSelector.addGoal(2, new FollowAggresivelyGoal(this,1.25,true));
+        //  this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9D, 32.0F));
       //  this.goalSelector.addGoal(2, new MoveBackToVillageGoal(this, 0.6D, false));
    //     this.goalSelector.addGoal(4, new GolemRandomStrollInVillageGoal(this, 0.6D));
       //  this.goalSelector.addGoal(5, new OfferFlowerGoal(this));
