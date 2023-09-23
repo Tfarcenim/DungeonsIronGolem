@@ -1,0 +1,40 @@
+{
+  "type": "dungeonsirongolem:add_item_with_chance",
+  "chance": 0.05,
+  "conditions": [
+    {
+      "condition": "minecraft:any_of",
+      "terms": [
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/simple_dungeon"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/abandoned_mineshaft"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/ancient_city"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/woodland_mansion"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/desert_pyramid"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/ruined_portal"
+        },
+        {
+          "condition": "forge:loot_table_id",
+          "loot_table_id": "minecraft:chests/bastion_treasure"
+        }
+      ]
+    }
+  ],
+  "item": "dungeonsirongolem:golem_kit"
+}

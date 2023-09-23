@@ -12,7 +12,10 @@ public class ModDatagen {
         PackOutput packOutput = dataGenerator.getPackOutput();
         ExistingFileHelper existingFileHelper = e.getExistingFileHelper();
         boolean client = e.includeClient();
+        boolean server = e.includeServer();
         dataGenerator.addProvider(client,new ModModelProvider(packOutput,existingFileHelper));
         dataGenerator.addProvider(client,new ModLangProvider(packOutput));
+        dataGenerator.addProvider(server,ModLootTableProvider.create(packOutput));
+        dataGenerator.addProvider(server,new ModGlobalLootModifierProvider(packOutput));
     }
 }
