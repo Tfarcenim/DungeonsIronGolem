@@ -2,7 +2,6 @@ package tfar.dungeonsirongolem;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.server.MinecraftServer;
@@ -14,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -54,81 +52,93 @@ public class IronGolemKitItem extends Item {
         } else {
             ItemStack itemstack = pContext.getItemInHand();
 
-            UUID uuid = getUuid(itemstack);
 
-            if (DungeonsIronGolem.ironGolemSavedData.inPlay(uuid)) {
-                ///pContext.getPlayer().sendSystemMessage(Component.translatable("This golem is already in use"));
+            Player player = pContext.getPlayer();
 
-                Entity entity = ((ServerLevel) level).getEntity(uuid);
-
-                if (entity instanceof DungeonsIronGolemEntity) {
-
-                    BlockPos blockpos = pContext.getClickedPos();
-                    Direction direction = pContext.getClickedFace();
-                    BlockState blockstate = level.getBlockState(blockpos);
-
-                    BlockPos blockpos1;
-                    if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
-                        blockpos1 = blockpos;
-                    } else {
-                        blockpos1 = blockpos.relative(direction);
-                    }
-
-
-                    entity.setPos(blockpos1.getX(),blockpos1.getY()+1,blockpos1.getZ());
-                }
-
+            if (player == null) {
                 return InteractionResult.SUCCESS;
             }
 
-            if (golem_ids.containsKey(uuid)) {
+            UUID playerGolemUUID = uuidBasedOnPlayer(player);
+
+            //there is a golem bound to this player
+            ///pContext.getPlayer().sendSystemMessage(Component.translatable("This golem is already in use"));
+
+            if (dead_golem_ids.containsKey(playerGolemUUID)) {
                 pContext.getPlayer().sendSystemMessage(Component.translatable("This golem is on death cooldown"));
                 return InteractionResult.SUCCESS;
             }
 
-            BlockPos blockpos = pContext.getClickedPos();
-            Direction direction = pContext.getClickedFace();
-            BlockState blockstate = level.getBlockState(blockpos);
+            Entity entity = ((ServerLevel) level).getEntity(playerGolemUUID);
 
-            BlockPos blockpos1;
-            if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
-                blockpos1 = blockpos;
+            //the golem is loaded, teleport to player
+            if (entity instanceof DungeonsIronGolemEntity) {
+                BlockPos blockpos = pContext.getClickedPos();
+                Direction direction = pContext.getClickedFace();
+                BlockState blockstate = level.getBlockState(blockpos);
+
+                BlockPos blockpos1;
+                if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
+                    blockpos1 = blockpos;
+                } else {
+                    blockpos1 = blockpos.relative(direction);
+                }
+                entity.setPos(blockpos1.getX(), blockpos1.getY() + 1, blockpos1.getZ());
+                return InteractionResult.SUCCESS;
             } else {
-                blockpos1 = blockpos.relative(direction);
-            }
+                //the golem is not loaded
+                BlockPos blockpos = pContext.getClickedPos();
+                Direction direction = pContext.getClickedFace();
+                BlockState blockstate = level.getBlockState(blockpos);
 
-            DungeonsIronGolemEntity spawn = DungeonsIronGolem.Entities.DUNGEONS_IRON_GOLEM_ENTITY.spawn((ServerLevel)level, itemstack, pContext.getPlayer(), blockpos1, MobSpawnType.SPAWN_EGG, true, !Objects.equals(blockpos, blockpos1) && direction == Direction.UP);
-            if (spawn != null) {
-                level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
-                itemstack.getOrCreateTag().putUUID(GOLEM_ID,spawn.getUUID());
-                spawn.setOwnerUUID(pContext.getPlayer().getUUID());
-                DungeonsIronGolem.ironGolemSavedData.addGolem(spawn.getUUID());
-                ((ServerPlayer)pContext.getPlayer()).connection.send(new ClientboundEntityEventPacket(spawn, (byte) 60));
-                spawn.level().playSound(null,spawn.blockPosition(), SoundEvents.IRON_GOLEM_REPAIR, SoundSource.NEUTRAL,1,1);
+                BlockPos blockpos1;
+                if (blockstate.getCollisionShape(level, blockpos).isEmpty()) {
+                    blockpos1 = blockpos;
+                } else {
+                    blockpos1 = blockpos.relative(direction);
+                }
+
+                DungeonsIronGolemEntity spawn = DungeonsIronGolem.Entities.DUNGEONS_IRON_GOLEM_ENTITY.create(level);
+                if (spawn != null) {
+                    spawn.setPos(blockpos1.getX(),blockpos1.getY(),blockpos1.getZ());
+                    spawn.setUUID(playerGolemUUID);
+             //       System.out.println(spawn.getUUID());
+                    level.addFreshEntity(spawn);
+                    level.gameEvent(pContext.getPlayer(), GameEvent.ENTITY_PLACE, blockpos);
+                    itemstack.getOrCreateTag().putUUID(GOLEM_ID, spawn.getUUID());
+                    spawn.setOwnerUUID(pContext.getPlayer().getUUID());
+                   // DungeonsIronGolem.ironGolemSavedData.addGolem(spawn.getUUID());
+                    ((ServerPlayer) pContext.getPlayer()).connection.send(new ClientboundEntityEventPacket(spawn, (byte) 60));
+                    spawn.level().playSound(null, spawn.blockPosition(), SoundEvents.IRON_GOLEM_REPAIR, SoundSource.NEUTRAL, 1, 1);
+                }
             }
-            return InteractionResult.CONSUME;
         }
+        return InteractionResult.CONSUME;
     }
 
-    public static UUID getUuid(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.contains(GOLEM_ID) ? tag.getUUID(GOLEM_ID) : null;
+    public static UUID uuidBasedOnPlayer(Player player) {
+        UUID uuid = player.getUUID();
+        Random random = new Random();
+        random.setSeed(uuid.getLeastSignificantBits() + DungeonsIronGolem.MODID.hashCode());
+        long upper = random.nextLong();
+        long lower = random.nextLong();
+        return new UUID(upper,lower);
     }
 
     public static final int COOLDOWN = 1800;
     public static final String GOLEM_ID = "golem_id";
-    private static Map<UUID,Integer> golem_ids = new HashMap<>();
+    private static final Map<UUID,Integer> dead_golem_ids = new HashMap<>();
 
     public static void addDeathCooldown(UUID uuid) {
-        golem_ids.put(uuid,COOLDOWN);
+        dead_golem_ids.put(uuid,COOLDOWN);
     }
 
-    public static void tickCooldowns(MinecraftServer server) {
-        for (Iterator<Map.Entry<UUID, Integer>> iterator = golem_ids.entrySet().iterator(); iterator.hasNext(); ) {
+    public static void tickDeathCooldowns(MinecraftServer server) {
+        for (Iterator<Map.Entry<UUID, Integer>> iterator = dead_golem_ids.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<UUID, Integer> entry = iterator.next();
             UUID key = entry.getKey();
             Integer value = entry.getValue();
-            golem_ids.put(key, value - 1);
+            dead_golem_ids.put(key, value - 1);
             if (value < 0) {
                 iterator.remove();
             }
