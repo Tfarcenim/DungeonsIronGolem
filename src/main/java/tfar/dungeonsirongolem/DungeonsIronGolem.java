@@ -8,11 +8,15 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.BasicItemListing;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.village.WandererTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -50,6 +54,8 @@ public class DungeonsIronGolem {
         iEventBus.addListener(ModDatagen::gather);
         MinecraftForge.EVENT_BUS.addListener(this::servertick);
         MinecraftForge.EVENT_BUS.addListener(this::serverStart);
+        MinecraftForge.EVENT_BUS.addListener(this::trades);
+
     }
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -69,6 +75,10 @@ public class DungeonsIronGolem {
 
     private void attributes(EntityAttributeCreationEvent event) {
         event.put(Entities.DUNGEONS_IRON_GOLEM_ENTITY, DungeonsIronGolemEntity.createAttributes().build());
+    }
+
+    private  void trades(WandererTradesEvent event) {
+        event.getRareTrades().add(new BasicItemListing(64,Entities.GOLEM_KIT.getDefaultInstance(),1,1));
     }
 
     public void onBlocksRegistry(final RegisterEvent event) {
