@@ -85,7 +85,7 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
         this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
       //  this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::isAngryAt));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Mob.class, 5, false, false, (livingEntity) -> {
-            return livingEntity instanceof Enemy && !(livingEntity instanceof Creeper);
+            return livingEntity instanceof Enemy;
         }));
 
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -103,7 +103,7 @@ public class DungeonsIronGolemEntity extends PathfinderMob implements GeoEntity,
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 120.0D).add(Attributes.MOVEMENT_SPEED, 0.30D).add(Attributes.KNOCKBACK_RESISTANCE, 1).add(Attributes.ATTACK_DAMAGE, 19);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 120.0D).add(Attributes.MOVEMENT_SPEED, 0.30D).add(Attributes.KNOCKBACK_RESISTANCE, 1).add(Attributes.ATTACK_DAMAGE, 20);
     }
 
     @Override

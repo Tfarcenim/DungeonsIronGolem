@@ -17,5 +17,6 @@ public class ModDatagen {
         dataGenerator.addProvider(client,new ModLangProvider(packOutput));
         dataGenerator.addProvider(server,ModLootTableProvider.create(packOutput));
         dataGenerator.addProvider(server,new ModGlobalLootModifierProvider(packOutput));
+        dataGenerator.addProvider(server,new ModEntityTypeTagsProvider(packOutput,e.getLookupProvider(),existingFileHelper));
     }
 }

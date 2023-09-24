@@ -17,9 +17,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import tfar.dungeonsirongolem.entity.DungeonsIronGolemEntity;
 
 @Mixin(LeavesBlock.class)
-public abstract class ExampleMixin extends Block {
+public abstract class LeavesBlockMixin extends Block {
 
-	public ExampleMixin(Properties pProperties) {
+	public LeavesBlockMixin(Properties pProperties) {
 		super(pProperties);
 	}
 

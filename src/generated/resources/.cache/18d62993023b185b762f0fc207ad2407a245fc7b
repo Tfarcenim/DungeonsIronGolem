@@ -1,0 +1,3 @@
+// 1.20.1	2023-09-23T19:42:18.2104404	Tags for minecraft:entity_type mod id dungeonsirongolem
+2c70364f888d3278b9277d774ba5ee378fdf8b2b data/dungeonsirongolem/tags/entity_types/ignore.json
+05f98724542ac7dacaa71ab998fea26a5076b7ba data/minecraft/tags/entity_types/fall_damage_immune.json
